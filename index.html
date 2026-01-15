@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MOHMD — WoS Pack Calendar</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="bg"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo-dot"></div>
+      <div class="brand-text">
+        <div class="brand-name">MOHMD</div>
+        <div class="brand-sub">Whiteout Survival Pack Calendar</div>
+      </div>
+    </div>
+
+    <div class="top-actions">
+      <button class="pill" id="langBtn">EN</button>
+      <button class="pill">Language</button>
+      <a class="pill" href="#" title="Placeholder">Solo Calculator</a>
+      <a class="pill primary" href="#" title="Placeholder">Go to ROI</a>
+    </div>
+  </header>
+
+  <main class="layout">
+    <aside class="sidebar">
+      <div class="side-card">
+        <button class="side-btn">Pack Calendar</button>
+        <button class="side-btn ghost">Go to ROI</button>
+        <button class="side-btn ghost">PvP Wars Mode</button>
+
+        <div class="hero">
+          <h1>Spend<br/>smarter.<br/>Stop<br/>missing<br/>packs.</h1>
+          <p>
+            State-relative calendar (Day X). Track pack windows by rotation and event.
+            Built for serious spenders.
+          </p>
+        </div>
+
+        <div class="mini-grid">
+          <div class="mini">
+            <div class="mini-label">Mode</div>
+            <div class="mini-value">Calendar</div>
+          </div>
+          <div class="mini">
+            <div class="mini-label">State Day</div>
+            <div class="mini-value" id="stateDayBadge">—</div>
+          </div>
+          <div class="mini">
+            <div class="mini-label">Range</div>
+            <div class="mini-value" id="rangeBadge">Default</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <section class="content">
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <div class="kicker">STATE-RELATIVE CALENDAR</div>
+            <div class="title">Pack Windows</div>
+          </div>
+
+          <div class="controls">
+            <div class="control">
+              <label>State start date</label>
+              <input type="date" id="stateStart" />
+            </div>
+
+            <div class="control">
+              <label>Or set “today is day”</label>
+              <input type="number" id="todayIsDay" min="1" placeholder="e.g. 45" />
+            </div>
+
+            <div class="control">
+              <label>Category filter</label>
+              <select id="categoryFilter">
+                <option value="all">All</option>
+              </select>
+            </div>
+
+            <div class="control">
+              <label>View</label>
+              <div class="seg">
+                <button class="seg-btn active" data-view="month">Month</button>
+                <button class="seg-btn" data-view="week">Week</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-body">
+          <div class="calendar-head">
+            <button class="nav" id="prevBtn">‹</button>
+            <div class="monthLabel" id="monthLabel">—</div>
+            <button class="nav" id="nextBtn">›</button>
+          </div>
+
+          <div class="dow">
+            <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>
+          </div>
+
+          <div class="grid" id="grid"></div>
+        </div>
+      </div>
+
+      <div class="panel sub">
+        <div class="panel-body">
+          <div class="kicker">DETAILS</div>
+          <div class="detailTitle" id="detailTitle">Pick a day</div>
+          <div class="detailList" id="detailList"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

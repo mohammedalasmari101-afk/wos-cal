@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "stateRanges": [
+    {
+      "id": "default",
+      "label": "Default (most states)",
+      "minStateDay": 1,
+      "maxStateDay": 9999,
+      "items": [
+        {
+          "id": "svs_prep_weekly",
+          "type": "event",
+          "title": "SVS Prep (example)",
+          "startDay": 43,
+          "endDay": 49,
+          "daysOfWeek": [1,2,3,4,5,6,0],
+          "category": "SVS",
+          "priority": 3,
+          "packs": [
+            { "name": "Growth / Speedups Pack", "tier": "Mid", "notes": "Common during prep windows" },
+            { "name": "Chief Gear Pack", "tier": "Whale", "notes": "Appears in some rotations" }
+          ],
+          "source": "community"
+        },
+        {
+          "id": "pet_weekly",
+          "type": "rotation",
+          "title": "Pet Skill Packs (example rotation)",
+          "startDay": 15,
+          "endDay": 9999,
+          "repeat": { "freq": "weekly", "interval": 1, "on": ["Mon","Tue"] },
+          "category": "Pets",
+          "priority": 2,
+          "packs": [
+            { "name": "Pet Skills Bundle", "tier": "Mid", "notes": "Usually early week" }
+          ],
+          "source": "community"
+        },
+        {
+          "id": "daily_topup",
+          "type": "rotation",
+          "title": "Daily Top-up Bonus (example)",
+          "startDay": 1,
+          "endDay": 9999,
+          "repeat": { "freq": "daily", "interval": 1 },
+          "category": "Top-up",
+          "priority": 1,
+          "packs": [
+            { "name": "Daily Top-up Pack", "tier": "Low", "notes": "Always-on style example" }
+          ],
+          "source": "example"
+        }
+      ]
+    }
+  ]
+}
