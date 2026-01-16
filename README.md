@@ -34,7 +34,7 @@ Built to support whales, PvP players, and organized alliances.
 
 ### 🌐 Live Web App
 
-➡️ **[Open the Pack Calendar]((https://mohammedalasmari101-afk.github.io/wos-cal/#))**  
+➡️ **[Open the Pack Calendar](https://mohammedalasmari101-afk.github.io/wos-cal/#)**  
 *(GitHub Pages — no login required)*
 
 <!-- Hidden URL reference -->
