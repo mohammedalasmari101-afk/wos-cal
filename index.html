@@ -20,7 +20,7 @@
 
     <div class="top-actions">
       <button class="pill" id="langBtn">EN</button>
-      <button class="pill">Language</button>
+      <button class="pill" type="button">Language</button>
       <a class="pill" href="#" title="Placeholder">Solo Calculator</a>
       <a class="pill primary" href="#" title="Placeholder">Go to ROI</a>
     </div>
@@ -29,9 +29,9 @@
   <main class="layout">
     <aside class="sidebar">
       <div class="side-card">
-        <button class="side-btn">Pack Calendar</button>
-        <button class="side-btn ghost">Go to ROI</button>
-        <button class="side-btn ghost">PvP Wars Mode</button>
+        <button class="side-btn" type="button">Pack Calendar</button>
+        <button class="side-btn ghost" type="button">Go to ROI</button>
+        <button class="side-btn ghost" type="button">PvP Wars Mode</button>
 
         <div class="hero">
           <h1>Spend<br/>smarter.<br/>Stop<br/>missing<br/>packs.</h1>
@@ -56,22 +56,26 @@
           </div>
         </div>
 
+        <!-- Tip Card (red square area) -->
         <div class="support-card">
-            <div class="support-title">Support the Project</div>
-            <div class="support-text">
-                If this calendar helps you avoid missing or double-buying packs,
-                you can support its development.
-        </div>
-
-        <a
+          <div class="support-title">Support the Project</div>
+          <div class="support-text">
+            If this calendar helps you avoid missing or double-buying packs,
+            you can support its development.
+          </div>
+          <a
+            class="support-btn"
             href="https://creators.sa/mohmd101a"
             target="_blank"
             rel="noopener noreferrer"
-            class="support-btn"
-        >
+          >
             ☕ Tip the Creator
-        </a>
-    </div>
+          </a>
+        </div>
+
+        <div class="side-actions">
+          <button class="pill danger" id="clearPurchasesBtn" type="button">Clear Purchases</button>
+        </div>
       </div>
     </aside>
 
@@ -104,8 +108,8 @@
             <div class="control">
               <label>View</label>
               <div class="seg">
-                <button class="seg-btn active" data-view="month">Month</button>
-                <button class="seg-btn" data-view="week">Week</button>
+                <button class="seg-btn active" data-view="month" type="button">Month</button>
+                <button class="seg-btn" data-view="week" type="button">Week</button>
               </div>
             </div>
           </div>
@@ -113,9 +117,9 @@
 
         <div class="panel-body">
           <div class="calendar-head">
-            <button class="nav" id="prevBtn">‹</button>
+            <button class="nav" id="prevBtn" type="button">‹</button>
             <div class="monthLabel" id="monthLabel">—</div>
-            <button class="nav" id="nextBtn">›</button>
+            <button class="nav" id="nextBtn" type="button">›</button>
           </div>
 
           <div class="dow">

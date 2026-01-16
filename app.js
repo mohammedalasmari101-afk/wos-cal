@@ -3,28 +3,29 @@ const $ = (id) => document.getElementById(id);
 const STORAGE_KEY = "wos_pack_purchases_v1";
 
 const state = {
-  data: null,
+  data: { schemaVersion: 2, resetUtc: "00:00", packDefs: [], stateRanges: [] },
 
-  view: "month",            // "month" | "week"
+  view: "month",
   cursor: startOfMonthLocal(new Date()),
   selectedDate: null,
 
-  stateStartDateUtc: null,  // Date at UTC midnight
-  todayIsDay: null,         // number (UTC-based)
+  stateStartDateUtc: null,
+  todayIsDay: null,
 
   category: "all",
-  purchases: []             // [{packId, ts}] where ts = ms UTC
-};
+  purchases: [],
 
-const DOW_MON_FIRST = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+  loadError: null
+};
 
 init();
 
 async function init(){
   wireUI();
   state.purchases = loadPurchases();
-  await loadData();
-  hydrateFilters();
+
+  await loadDataSafe();
+  hydrateFiltersSafe();
 
   setDefaultStateStartUTC();
   render();
@@ -83,16 +84,34 @@ function wireUI(){
   });
 }
 
-async function loadData(){
-  const res = await fetch("data/packs.json");
-  if(!res.ok) throw new Error("Failed to load data/packs.json");
-  state.data = await res.json();
+async function loadDataSafe(){
+  state.loadError = null;
+
+  try{
+    const res = await fetch("data/packs.json", { cache: "no-store" });
+    if(!res.ok) throw new Error(`packs.json not found (HTTP ${res.status})`);
+    const json = await res.json();
+
+    // minimal validation
+    json.packDefs = Array.isArray(json.packDefs) ? json.packDefs : [];
+    json.stateRanges = Array.isArray(json.stateRanges) ? json.stateRanges : [];
+
+    state.data = json;
+  }catch(err){
+    state.loadError = String(err?.message || err);
+    // keep empty dataset so UI still renders
+    state.data = { schemaVersion: 2, resetUtc: "00:00", packDefs: [], stateRanges: [] };
+  }
 }
 
-function hydrateFilters(){
+function hydrateFiltersSafe(){
+  const sel = $("categoryFilter");
+  // reset to only "All"
+  sel.innerHTML = `<option value="all">All</option>`;
+
   const cats = new Set();
   getAllRules().forEach(r => cats.add(r.category || "Other"));
-  const sel = $("categoryFilter");
+
   [...cats].sort().forEach(c=>{
     const opt = document.createElement("option");
     opt.value = c;
@@ -102,15 +121,14 @@ function hydrateFilters(){
 }
 
 function setDefaultStateStartUTC(){
-  // default: 60 UTC days ago
   const now = new Date();
-  const start = addDaysUTC(now, -60);
+  const start = addDaysUTC(utcMidnightFromUTC(now), -60);
   $("stateStart").value = toISODateUTC(start);
   state.stateStartDateUtc = parseDateAsUtcMidnight($("stateStart").value);
 }
 
 function render(){
-  const todayUtcMidnight = utcMidnight(new Date());
+  const todayUtcMidnight = utcMidnightFromUTC(new Date());
   const stateDayToday = computeStateDay(todayUtcMidnight);
   $("stateDayBadge").textContent = stateDayToday ? `Day ${stateDayToday}` : "—";
 
@@ -119,7 +137,6 @@ function render(){
 
   const rules = filterRules(activeRange?.rules || []);
 
-  // header label (monthly calendar real dates)
   if(state.view === "month"){
     $("monthLabel").textContent = formatMonthYear(state.cursor);
     renderMonth(rules, todayUtcMidnight);
@@ -130,13 +147,11 @@ function render(){
     renderWeek(rules, todayUtcMidnight, start);
   }
 
-  if(!state.selectedDate){
-    state.selectedDate = new Date(); // local click date; fine
-  }
+  if(!state.selectedDate) state.selectedDate = new Date();
   renderDetails(rules, state.selectedDate);
 }
 
-/* ----------------- calendar grid ----------------- */
+/* ----------------- calendar ----------------- */
 
 function renderMonth(rules, todayUtcMidnight){
   const grid = $("grid");
@@ -169,13 +184,17 @@ function makeCell(dateLocal, rules, todayUtcMidnight, focusMonth){
     cell.classList.add("dim");
   }
 
-  const cellUtcMid = utcMidnight(dateLocal);
+  // map displayed local Y/M/D to UTC midnight of same date
+  const cellUtcMid = utcMidnightFromLocalYMD(dateLocal);
+
   if(isSameUtcDay(cellUtcMid, todayUtcMidnight)){
     cell.classList.add("today");
   }
 
   const sd = computeStateDay(cellUtcMid);
   const act = sd ? rulesActiveOnDate(rules, cellUtcMid, sd) : [];
+
+  const actForBadges = act.filter(a => ruleHasAnyAvailablePack(a.rule, cellUtcMid));
 
   const top = document.createElement("div");
   top.className = "cellTop";
@@ -187,15 +206,17 @@ function makeCell(dateLocal, rules, todayUtcMidnight, focusMonth){
   const badges = document.createElement("div");
   badges.className = "badges";
 
-  // show up to 3 categories present
   const seen = new Set();
-  for(const a of act){
-    if(seen.has(a.rule.category)) continue;
-    seen.add(a.rule.category);
+  for(const a of actForBadges){
+    const cat = a.rule.category || "Item";
+    if(seen.has(cat)) continue;
+    seen.add(cat);
+
     const b = document.createElement("div");
     b.className = "badge " + (seen.size === 1 ? "high" : "");
-    b.textContent = a.rule.category || "Item";
+    b.textContent = cat;
     badges.appendChild(b);
+
     if(seen.size >= 3) break;
   }
 
@@ -205,27 +226,37 @@ function makeCell(dateLocal, rules, todayUtcMidnight, focusMonth){
   cell.addEventListener("click", ()=>{
     state.selectedDate = dateLocal;
     renderDetails(rules, dateLocal);
-
-    document.querySelectorAll(".cell").forEach(c=>c.style.outline="none");
-    cell.style.outline = "2px solid rgba(0,255,190,.28)";
-    cell.style.outlineOffset = "2px";
   });
 
   return cell;
 }
 
-/* ----------------- details panel ----------------- */
+function ruleHasAnyAvailablePack(rule, dayUtcMid){
+  const packs = (rule.packs || []).map(id => getPackDef(id)).filter(Boolean);
+  if(packs.length === 0) return false;
+  return packs.some(p => getPurchaseStatus(p, dayUtcMid).available);
+}
+
+/* ----------------- details ----------------- */
 
 function renderDetails(rules, dateLocal){
-  const dateUtcMid = utcMidnight(dateLocal);
+  const list = $("detailList");
+  list.innerHTML = "";
+
+  if(state.loadError){
+    $("detailTitle").textContent = "Dataset error";
+    list.appendChild(detailEmpty(
+      `Could not load data/packs.json. Fix it and refresh.\n\nError: ${state.loadError}`
+    ));
+    return;
+  }
+
+  const dateUtcMid = utcMidnightFromLocalYMD(dateLocal);
   const sd = computeStateDay(dateUtcMid);
 
   $("detailTitle").textContent = sd
     ? `${formatLong(dateLocal)} — State Day ${sd} (UTC reset)`
     : `${formatLong(dateLocal)} — set state start day`;
-
-  const list = $("detailList");
-  list.innerHTML = "";
 
   if(!sd){
     list.appendChild(detailEmpty("No state day yet. Set State start date or “today is state day”."));
@@ -239,12 +270,10 @@ function renderDetails(rules, dateLocal){
     return;
   }
 
-  // flatten to pack cards, grouped by rule
   for(const a of active){
     const rule = a.rule;
     const packs = (rule.packs || []).map(id => getPackDef(id)).filter(Boolean);
 
-    // rule header
     const header = document.createElement("div");
     header.className = "detailItem";
     header.innerHTML = `
@@ -259,7 +288,6 @@ function renderDetails(rules, dateLocal){
     `;
     list.appendChild(header);
 
-    // pack cards
     for(const p of packs){
       list.appendChild(renderPackCard(p, dateUtcMid));
     }
@@ -292,7 +320,7 @@ function renderPackCard(packDef, nowUtcMid){
         }
       </div>
       <div class="actions">
-        <button class="smallBtn primary" data-buy="${escapeHtml(packDef.id)}" ${available ? "" : "disabled"}>Mark as bought</button>
+        <button class="smallBtn primary" data-buy="${escapeHtml(packDef.id)}" ${available ? "" : "disabled"} type="button">Mark as bought</button>
         ${!available ? `<span style="opacity:.8">Next reset: ${escapeHtml(formatUtc(nextAtUtc))} UTC</span>` : ""}
       </div>
     </div>
@@ -302,7 +330,7 @@ function renderPackCard(packDef, nowUtcMid){
   if(btn){
     btn.addEventListener("click", ()=>{
       recordPurchase(packDef.id, Date.now());
-      render(); // refresh everything
+      render();
     });
   }
 
@@ -312,7 +340,6 @@ function renderPackCard(packDef, nowUtcMid){
 function renderGives(packDef){
   let lines = [];
 
-  // standard gives
   if(Array.isArray(packDef.gives) && packDef.gives.length){
     lines.push(`<div><b>Includes:</b></div>`);
     for(const g of packDef.gives){
@@ -320,7 +347,6 @@ function renderGives(packDef){
     }
   }
 
-  // choose pool
   if(packDef.givesMode === "choose" && packDef.choose){
     lines.push(`<div style="margin-top:8px"><b>Choose ${escapeHtml(packDef.choose.count)}:</b></div>`);
     for(const c of (packDef.choose.pool || [])){
@@ -334,11 +360,11 @@ function renderGives(packDef){
 function detailEmpty(msg){
   const el = document.createElement("div");
   el.className = "detailItem";
-  el.innerHTML = `<div class="meta">${escapeHtml(msg)}</div>`;
+  el.innerHTML = `<div class="meta" style="white-space:pre-wrap">${escapeHtml(msg)}</div>`;
   return el;
 }
 
-/* ----------------- rule activation (schema v2) ----------------- */
+/* ----------------- activation rules ----------------- */
 
 function getAllRules(){
   return (state.data?.stateRanges || []).flatMap(r => r.rules || []);
@@ -350,7 +376,7 @@ function getPackDef(id){
 
 function pickRange(stateDay){
   const ranges = state.data?.stateRanges || [];
-  return ranges.find(r => stateDay >= r.minStateDay && stateDay <= r.maxStateDay) || ranges[0];
+  return ranges.find(r => stateDay >= r.minStateDay && stateDay <= r.maxStateDay) || ranges[0] || { label:"Default", rules:[] };
 }
 
 function filterRules(rules){
@@ -364,7 +390,6 @@ function rulesActiveOnDate(rules, dateUtcMid, stateDay){
   for(const rule of rules){
     if(stateDay < rule.startDay || stateDay > rule.endDay) continue;
 
-    // No repeat => active every day in window
     if(!rule.repeat){
       out.push({ rule, windowText: `State Day ${rule.startDay} → ${rule.endDay}` });
       continue;
@@ -373,29 +398,24 @@ function rulesActiveOnDate(rules, dateUtcMid, stateDay){
     const rep = rule.repeat;
 
     if(rep.freq === "weekly"){
-      // Two cases:
-      // A) on has ONE day => "starts that day and lasts until next same day"
-      //    (your Mon -> next Mon requirement)
-      // B) on has MULTIPLE days => active only on those days
       const on = Array.isArray(rep.on) ? rep.on : [];
-      const wd = weekdayUtc(dateUtcMid); // "Mon".."Sun"
 
+      // single day means: starts at that weekday 00:00 UTC and lasts 7 days
       if(on.length === 1){
-        const startDayName = on[0];
-        const startUtc = startOfWeekWindowUtc(dateUtcMid, startDayName);
+        const startName = on[0];
+        const startUtc = startOfWeekWindowUtc(dateUtcMid, startName);
         const endUtc = addDaysUTC(startUtc, 7);
         if(dateUtcMid >= startUtc && dateUtcMid < endUtc){
-          out.push({ rule, windowText: `${startDayName} 00:00 UTC → next ${startDayName} 00:00 UTC` });
+          out.push({ rule, windowText: `${startName} 00:00 UTC → next ${startName} 00:00 UTC` });
         }
-      } else if(on.length > 1) {
+      } else if(on.length > 1){
+        const wd = weekdayUtc(dateUtcMid);
         if(on.includes(wd)){
           out.push({ rule, windowText: `Weekly on ${on.join(", ")} (00:00 UTC reset)` });
         }
       } else {
-        // weekly with no on[] => treat as always active in window
         out.push({ rule, windowText: `Weekly (00:00 UTC reset)` });
       }
-
       continue;
     }
 
@@ -405,10 +425,8 @@ function rulesActiveOnDate(rules, dateUtcMid, stateDay){
     }
 
     if(rep.freq === "monthly"){
-      // minimal support: show on the 1st by default, or rep.onDay
       const onDay = rep.onDay || 1;
-      const dayOfMonthUtc = dateUtcMid.getUTCDate();
-      if(dayOfMonthUtc === onDay){
+      if(dateUtcMid.getUTCDate() === onDay){
         out.push({ rule, windowText: `Monthly on day ${onDay} (00:00 UTC reset)` });
       }
       continue;
@@ -418,7 +436,7 @@ function rulesActiveOnDate(rules, dateUtcMid, stateDay){
   return out;
 }
 
-/* ----------------- purchases / cooldown ----------------- */
+/* ----------------- purchases ----------------- */
 
 function loadPurchases(){
   try{
@@ -443,7 +461,6 @@ function recordPurchase(packId, tsMs){
 function getPurchaseStatus(packDef, nowUtcMid){
   const limit = Number.isFinite(packDef.buyLimit) ? packDef.buyLimit : 1;
   const resetType = packDef.reset?.type || "daily";
-
   const period = getResetPeriod(resetType, packDef.reset, nowUtcMid);
 
   const used = state.purchases.filter(p =>
@@ -459,11 +476,8 @@ function getPurchaseStatus(packDef, nowUtcMid){
 }
 
 function getResetPeriod(resetType, resetCfg, nowUtcMid){
-  // nowUtcMid is a Date at UTC midnight of the calendar day
-  const start = new Date(nowUtcMid.getTime());
-
   if(resetType === "daily"){
-    const s = start;
+    const s = nowUtcMid;
     const e = addDaysUTC(s, 1);
     return { start: s, end: e };
   }
@@ -481,26 +495,24 @@ function getResetPeriod(resetType, resetCfg, nowUtcMid){
     return { start: s, end: e };
   }
 
-  // fallback
-  const e = addDaysUTC(start, 1);
-  return { start, end: e };
+  const s = nowUtcMid;
+  const e = addDaysUTC(s, 1);
+  return { start: s, end: e };
 }
 
-/* ----------------- state day (UTC midnight) ----------------- */
+/* ----------------- state day (UTC) ----------------- */
 
 function computeStateDay(dateUtcMid){
   const dayNum = utcDayNumber(dateUtcMid);
 
-  // Option A: state start
   if(state.stateStartDateUtc){
     const startNum = utcDayNumber(state.stateStartDateUtc);
     const diff = dayNum - startNum;
     return diff >= 0 ? diff + 1 : null;
   }
 
-  // Option B: today is day X
   if(state.todayIsDay){
-    const todayNum = utcDayNumber(utcMidnight(new Date()));
+    const todayNum = utcDayNumber(utcMidnightFromUTC(new Date()));
     const delta = dayNum - todayNum;
     const sd = state.todayIsDay + delta;
     return sd > 0 ? sd : null;
@@ -511,12 +523,16 @@ function computeStateDay(dateUtcMid){
 
 /* ----------------- UTC helpers ----------------- */
 
-function utcMidnight(d){
+function utcMidnightFromUTC(d){
   return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
 }
 
-function utcDayNumber(d){
-  return Math.floor(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) / 86400000);
+function utcMidnightFromLocalYMD(dLocal){
+  return new Date(Date.UTC(dLocal.getFullYear(), dLocal.getMonth(), dLocal.getDate()));
+}
+
+function utcDayNumber(dUtcMid){
+  return Math.floor(Date.UTC(dUtcMid.getUTCFullYear(), dUtcMid.getUTCMonth(), dUtcMid.getUTCDate()) / 86400000);
 }
 
 function parseDateAsUtcMidnight(ymd){
@@ -524,45 +540,50 @@ function parseDateAsUtcMidnight(ymd){
   return new Date(Date.UTC(y, m - 1, da));
 }
 
-function addDaysUTC(d, n){
-  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + n));
+function addDaysUTC(dUtcMid, n){
+  return new Date(Date.UTC(dUtcMid.getUTCFullYear(), dUtcMid.getUTCMonth(), dUtcMid.getUTCDate() + n));
 }
 
-function toISODateUTC(d){
-  const y = d.getUTCFullYear();
-  const m = String(d.getUTCMonth()+1).padStart(2,"0");
-  const da = String(d.getUTCDate()).padStart(2,"0");
+function toISODateUTC(dUtcMid){
+  const y = dUtcMid.getUTCFullYear();
+  const m = String(dUtcMid.getUTCMonth()+1).padStart(2,"0");
+  const da = String(dUtcMid.getUTCDate()).padStart(2,"0");
   return `${y}-${m}-${da}`;
 }
 
 function weekdayUtc(dUtcMid){
-  // returns "Mon".."Sun"
-  const js = dUtcMid.getUTCDay(); // Sun=0
+  const js = dUtcMid.getUTCDay();
   const map = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
   return map[js];
 }
 
-// For "weekStarts" or weekly rule "on" start day:
-// returns the UTC midnight of the most recent <startDayName> at/ before dateUtcMid
 function startOfWeekWindowUtc(dateUtcMid, startDayName){
   const map = { "Mon":1,"Tue":2,"Wed":3,"Thu":4,"Fri":5,"Sat":6,"Sun":0 };
   const target = map[startDayName] ?? 1;
-  const current = dateUtcMid.getUTCDay(); // 0..6 (Sun..Sat)
+  const current = dateUtcMid.getUTCDay();
 
   let diff = current - target;
   if(diff < 0) diff += 7;
   return addDaysUTC(dateUtcMid, -diff);
 }
 
-function isSameUtcDay(aUtc, bUtc){
-  return aUtc.getTime() === bUtc.getTime();
+function isSameUtcDay(aUtcMid, bUtcMid){
+  return aUtcMid.getTime() === bUtcMid.getTime();
 }
 
-/* ----------------- local date helpers (for UI layout only) ----------------- */
+function formatUtc(dUtcMid){
+  const y = dUtcMid.getUTCFullYear();
+  const m = String(dUtcMid.getUTCMonth()+1).padStart(2,"0");
+  const da = String(dUtcMid.getUTCDate()).padStart(2,"0");
+  return `${y}-${m}-${da} 00:00`;
+}
+
+/* ----------------- Local UI helpers ----------------- */
 
 function startOfMonthLocal(d){
   return new Date(d.getFullYear(), d.getMonth(), 1);
 }
+
 function startOfWeekMonLocal(d){
   const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
   const js = x.getDay(); // Sun=0
@@ -570,11 +591,13 @@ function startOfWeekMonLocal(d){
   x.setDate(x.getDate() - monIndex);
   return x;
 }
+
 function addDaysLocal(d, n){
   const x = new Date(d);
   x.setDate(x.getDate() + n);
   return x;
 }
+
 function addMonthsLocal(d, n){
   return new Date(d.getFullYear(), d.getMonth() + n, 1);
 }
@@ -582,19 +605,13 @@ function addMonthsLocal(d, n){
 function formatMonthYear(d){
   return d.toLocaleString(undefined, {month:"long", year:"numeric"});
 }
+
 function formatLong(d){
   return d.toLocaleString(undefined, {weekday:"long", year:"numeric", month:"long", day:"numeric"});
 }
+
 function formatShort(d){
   return d.toLocaleString(undefined, {month:"short", day:"numeric"});
-}
-
-function formatUtc(dUtc){
-  // dUtc is Date at UTC boundary; show YYYY-MM-DD 00:00
-  const y = dUtc.getUTCFullYear();
-  const m = String(dUtc.getUTCMonth()+1).padStart(2,"0");
-  const da = String(dUtc.getUTCDate()).padStart(2,"0");
-  return `${y}-${m}-${da} 00:00`;
 }
 
 /* ----------------- safety ----------------- */
@@ -602,7 +619,7 @@ function formatUtc(dUtc){
 function escapeHtml(s){
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
+
 function cssEscape(s){
-  // basic
   return String(s).replace(/"/g, '\\"');
 }
