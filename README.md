@@ -11,12 +11,12 @@ Built for serious players who want **clarity** on *when packs appear*, *how long
 
 ![version](https://img.shields.io/badge/version-v1.0.0-00ffbf?style=for-the-badge)
 ![focus](https://img.shields.io/badge/focus-Pack%20Calendar-00b7ff?style=for-the-badge)
-![timezone](https://img.shields.io/badge/reset-00:00%20UTC-ffffff?style=for-the-badge)
+![reset](https://img.shields.io/badge/reset-00:00%20UTC-ffffff?style=for-the-badge)
 ![language](https://img.shields.io/badge/language-EN-8a2be2?style=for-the-badge)
 
 ---
 
-##  English
+## 🇬🇧 English
 
 ### 📌 Overview
 
@@ -32,12 +32,22 @@ Built to support whales, PvP players, and organized alliances.
 
 ---
 
+### 🌐 Live Web App
+
+➡️ **[Open the Pack Calendar](#)**  
+*(GitHub Pages — no login required)*
+
+<!-- Hidden URL reference -->
+<!-- https://mohammedalasmari101-afk.github.io/wos-cal/# -->
+
+---
+
 ### ✨ Key Features
 
 | Feature | Description |
 |------|------------|
 | 🗓️ Real-Date Calendar | Monthly & weekly views using real calendar dates |
-| ⏰ UTC Reset Logic | All packs reset at **00:00 UTC** (no timezone confusion) |
+| ⏰ UTC Reset Logic | All packs reset at **00:00 UTC** |
 | 🔁 Weekly Windows | Supports packs active **Mon → next Mon** |
 | 🛒 Purchase Tracking | Mark packs as bought and lock until next reset |
 | 🚫 Double-Buy Protection | Instantly see if a pack is already capped |
