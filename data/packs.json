@@ -1,7 +1,6 @@
 {
   "schemaVersion": 2,
   "resetUtc": "00:00",
-
   "packDefs": [
     {
       "id": "custom_pet_chest_4_99",
@@ -22,9 +21,9 @@
         ]
       },
       "gives": [
-        { "item": "Custom Chest Key", "qty": 1 },
-        { "item": "Unknown (gold bar, 100)", "qty": 25 },
-        { "item": "Merchant Coin/Token", "qty": 2500 }
+        { "item": "Lv.1 Custom Resource Chest", "qty": 2000 },
+        { "item": "Gold Key", "qty": 1 },
+        { "item": "100 VIP XP", "qty": 25 }
       ],
       "source": "screenshot"
     },
@@ -47,9 +46,9 @@
         ]
       },
       "gives": [
-        { "item": "Custom Chest Key", "qty": 2 },
-        { "item": "Unknown (gold bar, 100)", "qty": 40 },
-        { "item": "Merchant Coin/Token", "qty": 5000 }
+        { "item": "Lv.1 Custom Resource Chest", "qty": 4000 },
+        { "item": "Gold Key", "qty": 3 },
+        { "item": "100 VIP XP", "qty": 40 }
       ],
       "source": "screenshot"
     },
@@ -72,9 +71,9 @@
         ]
       },
       "gives": [
-        { "item": "Custom Chest Key", "qty": 4 },
-        { "item": "Unknown (gold bar, 100)", "qty": 60 },
-        { "item": "Merchant Coin/Token", "qty": 10000 }
+        { "item": "Lv. 1 Custom Resource Chest", "qty": 8000 },
+        { "item": "Gold Key", "qty": 4 },
+        { "item": "100 VIP XP", "qty": 60 }
       ],
       "source": "screenshot"
     },
@@ -97,9 +96,9 @@
         ]
       },
       "gives": [
-        { "item": "Custom Chest Key", "qty": 10 },
-        { "item": "Unknown (gold bar, 1K)", "qty": 12 },
-        { "item": "Merchant Coin/Token", "qty": 25000 }
+        { "item": "Lv.2 Custom Resource Chest", "qty": 2000 },
+        { "item": "Gold Key", "qty": 10 },
+        { "item": "1000 VIP XP", "qty": 12 }
       ],
       "source": "screenshot"
     },
@@ -122,14 +121,13 @@
         ]
       },
       "gives": [
-        { "item": "Custom Chest Key", "qty": 20 },
-        { "item": "Unknown (gold bar, 1K)", "qty": 20 },
-        { "item": "Merchant Coin/Token", "qty": 50000 }
+        { "item": "Lv.2 Custom Resource Chest", "qty": 4000 },
+        { "item": "Gold Key", "qty": 20 },
+        { "item": "1000 VIP XP", "qty": 20 }
       ],
       "source": "screenshot"
     }
   ],
-
   "stateRanges": [
     {
       "id": "default",
