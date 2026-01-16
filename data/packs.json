@@ -1,54 +1,161 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
+  "resetUtc": "00:00",
+
+  "packDefs": [
+    {
+      "id": "custom_pet_chest_4_99",
+      "name": "Custom Pet Chest — Shining Custom Chest",
+      "desc": "Choose 3 items from the pet pool. Weekly custom chest.",
+      "price": 4.99,
+      "currency": "USD",
+      "buyLimit": 1,
+      "reset": { "type": "weekly", "weekStarts": "Mon" },
+      "givesMode": "choose",
+      "choose": {
+        "count": 3,
+        "pool": [
+          { "item": "Pet Food", "qty": 5000 },
+          { "item": "Pet Advancement Materials (Custom Chest)", "qty": 6 },
+          { "item": "Common Wild Mark", "qty": 16 },
+          { "item": "Advanced Wild Mark", "qty": 2 }
+        ]
+      },
+      "gives": [
+        { "item": "Custom Chest Key", "qty": 1 },
+        { "item": "Unknown (gold bar, 100)", "qty": 25 },
+        { "item": "Merchant Coin/Token", "qty": 2500 }
+      ],
+      "source": "screenshot"
+    },
+
+    {
+      "id": "custom_pet_chest_9_99",
+      "name": "Custom Pet Chest — Brilliant Custom Chest",
+      "desc": "Choose 3 items from the pet pool. Weekly custom chest.",
+      "price": 9.99,
+      "currency": "USD",
+      "buyLimit": 1,
+      "reset": { "type": "weekly", "weekStarts": "Mon" },
+      "givesMode": "choose",
+      "choose": {
+        "count": 3,
+        "pool": [
+          { "item": "Pet Food", "qty": 10000 },
+          { "item": "Pet Advancement Materials (Custom Chest)", "qty": 12 },
+          { "item": "Common Wild Mark", "qty": 32 },
+          { "item": "Advanced Wild Mark", "qty": 4 }
+        ]
+      },
+      "gives": [
+        { "item": "Custom Chest Key", "qty": 2 },
+        { "item": "Unknown (gold bar, 100)", "qty": 40 },
+        { "item": "Merchant Coin/Token", "qty": 5000 }
+      ],
+      "source": "screenshot"
+    },
+
+    {
+      "id": "custom_pet_chest_19_99",
+      "name": "Custom Pet Chest — Dazzling Custom Chest",
+      "desc": "Choose 3 items from the pet pool. Weekly custom chest.",
+      "price": 19.99,
+      "currency": "USD",
+      "buyLimit": 1,
+      "reset": { "type": "weekly", "weekStarts": "Mon" },
+      "givesMode": "choose",
+      "choose": {
+        "count": 3,
+        "pool": [
+          { "item": "Pet Food", "qty": 20000 },
+          { "item": "Pet Advancement Materials (Custom Chest)", "qty": 24 },
+          { "item": "Common Wild Mark", "qty": 64 },
+          { "item": "Advanced Wild Mark", "qty": 8 }
+        ]
+      },
+      "gives": [
+        { "item": "Custom Chest Key", "qty": 4 },
+        { "item": "Unknown (gold bar, 100)", "qty": 60 },
+        { "item": "Merchant Coin/Token", "qty": 10000 }
+      ],
+      "source": "screenshot"
+    },
+
+    {
+      "id": "custom_pet_chest_49_99",
+      "name": "Custom Pet Chest — Exquisite Custom Chest",
+      "desc": "Choose 3 items from the pet pool. Weekly custom chest.",
+      "price": 49.99,
+      "currency": "USD",
+      "buyLimit": 1,
+      "reset": { "type": "weekly", "weekStarts": "Mon" },
+      "givesMode": "choose",
+      "choose": {
+        "count": 3,
+        "pool": [
+          { "item": "Pet Food", "qty": 50000 },
+          { "item": "Pet Advancement Materials (Custom Chest)", "qty": 60 },
+          { "item": "Common Wild Mark", "qty": 160 },
+          { "item": "Advanced Wild Mark", "qty": 20 }
+        ]
+      },
+      "gives": [
+        { "item": "Custom Chest Key", "qty": 10 },
+        { "item": "Unknown (gold bar, 1K)", "qty": 12 },
+        { "item": "Merchant Coin/Token", "qty": 25000 }
+      ],
+      "source": "screenshot"
+    },
+
+    {
+      "id": "custom_pet_chest_99_99",
+      "name": "Custom Pet Chest — Majestic Custom Chest",
+      "desc": "Choose 3 items from the pet pool. Weekly custom chest.",
+      "price": 99.99,
+      "currency": "USD",
+      "buyLimit": 1,
+      "reset": { "type": "weekly", "weekStarts": "Mon" },
+      "givesMode": "choose",
+      "choose": {
+        "count": 3,
+        "pool": [
+          { "item": "Pet Food", "qty": 100000 },
+          { "item": "Pet Advancement Materials (Custom Chest)", "qty": 120 },
+          { "item": "Common Wild Mark", "qty": 320 },
+          { "item": "Advanced Wild Mark", "qty": 40 }
+        ]
+      },
+      "gives": [
+        { "item": "Custom Chest Key", "qty": 20 },
+        { "item": "Unknown (gold bar, 1K)", "qty": 20 },
+        { "item": "Merchant Coin/Token", "qty": 50000 }
+      ],
+      "source": "screenshot"
+    }
+  ],
+
   "stateRanges": [
     {
       "id": "default",
       "label": "Default (most states)",
       "minStateDay": 1,
       "maxStateDay": 9999,
-      "items": [
+      "rules": [
         {
-          "id": "svs_prep_weekly",
-          "type": "event",
-          "title": "SVS Prep (example)",
-          "startDay": 43,
-          "endDay": 49,
-          "daysOfWeek": [1,2,3,4,5,6,0],
-          "category": "SVS",
-          "priority": 3,
-          "packs": [
-            { "name": "Growth / Speedups Pack", "tier": "Mid", "notes": "Common during prep windows" },
-            { "name": "Chief Gear Pack", "tier": "Whale", "notes": "Appears in some rotations" }
-          ],
-          "source": "community"
-        },
-        {
-          "id": "pet_weekly",
-          "type": "rotation",
-          "title": "Pet Skill Packs (example rotation)",
-          "startDay": 15,
-          "endDay": 9999,
-          "repeat": { "freq": "weekly", "interval": 1, "on": ["Mon","Tue"] },
+          "id": "custom_pet_chest_weekly",
+          "title": "Custom Pet Chest (Weekly)",
           "category": "Pets",
-          "priority": 2,
-          "packs": [
-            { "name": "Pet Skills Bundle", "tier": "Mid", "notes": "Usually early week" }
-          ],
-          "source": "community"
-        },
-        {
-          "id": "daily_topup",
-          "type": "rotation",
-          "title": "Daily Top-up Bonus (example)",
           "startDay": 1,
           "endDay": 9999,
-          "repeat": { "freq": "daily", "interval": 1 },
-          "category": "Top-up",
-          "priority": 1,
+          "repeat": { "freq": "weekly", "on": ["Mon"] },
           "packs": [
-            { "name": "Daily Top-up Pack", "tier": "Low", "notes": "Always-on style example" }
+            "custom_pet_chest_4_99",
+            "custom_pet_chest_9_99",
+            "custom_pet_chest_19_99",
+            "custom_pet_chest_49_99",
+            "custom_pet_chest_99_99"
           ],
-          "source": "example"
+          "source": "screenshot+community"
         }
       ]
     }

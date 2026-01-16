@@ -49,11 +49,12 @@ function wireUI(){
   });
 
   $("stateStart").addEventListener("change", (e)=>{
-    state.stateStartDate = e.target.value ? new Date(e.target.value + "T00:00:00") : null;
-    state.todayIsDay = null;
-    $("todayIsDay").value = "";
-    render();
-  });
+  state.stateStartDate = e.target.value ? parseDateAsUtcMidnight(e.target.value) : null;
+  state.todayIsDay = null;
+  $("todayIsDay").value = "";
+  render();
+});
+
 
   $("todayIsDay").addEventListener("input", (e)=>{
     const v = parseInt(e.target.value, 10);
@@ -70,6 +71,12 @@ function wireUI(){
     render();
   });
 }
+
+function parseDateAsUtcMidnight(ymd){
+  const [y,m,d] = ymd.split("-").map(n => parseInt(n,10));
+  return new Date(Date.UTC(y, m - 1, d));
+}
+
 
 async function loadData(){
   const res = await fetch("data/packs.json");
@@ -90,11 +97,24 @@ function hydrateFilters(){
 }
 
 function setDefaultStateStart(){
-  // Reasonable default: assume state started 60 days ago (user can change).
-  const d = addDays(new Date(), -60);
-  $("stateStart").value = toISODate(d);
-  state.stateStartDate = new Date(toISODate(d) + "T00:00:00");
+  // default: 60 days ago, computed in UTC
+  const now = new Date();
+  const start = addDaysUTC(now, -60);
+  $("stateStart").value = toISODateUTC(start);
+  state.stateStartDate = parseDateAsUtcMidnight($("stateStart").value);
 }
+
+function addDaysUTC(d, n){
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + n));
+}
+
+function toISODateUTC(d){
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth()+1).padStart(2,"0");
+  const da = String(d.getUTCDate()).padStart(2,"0");
+  return `${y}-${m}-${da}`;
+}
+
 
 function render(){
   const today = startOfDay(new Date());
@@ -255,23 +275,32 @@ function detailEmpty(msg){
 /* ----------------- logic: state day & scheduling ----------------- */
 
 function computeStateDay(date){
-  // Option A: stateStartDate is provided
+  // date = a JS Date (local), but we compute using UTC day numbers
+  const dayNum = utcDayNumber(date);
+
+  // Option A: stateStartDate is provided (stored as UTC midnight)
   if(state.stateStartDate){
-    const start = startOfDay(state.stateStartDate);
-    const diff = Math.floor((startOfDay(date) - start) / 86400000);
+    const startNum = utcDayNumber(state.stateStartDate);
+    const diff = dayNum - startNum;
     return diff >= 0 ? diff + 1 : null;
   }
 
-  // Option B: user says "today is day X"
+  // Option B: user says "today is day X" (today measured in UTC)
   if(state.todayIsDay){
-    const today = startOfDay(new Date());
-    const delta = Math.floor((startOfDay(date) - today) / 86400000);
+    const todayUtc = utcDayNumber(new Date());
+    const delta = dayNum - todayUtc;
     const sd = state.todayIsDay + delta;
     return sd > 0 ? sd : null;
   }
 
   return null;
 }
+
+function utcDayNumber(d){
+  // Number of days since epoch, based on UTC midnight
+  return Math.floor(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) / 86400000);
+}
+
 
 function pickRange(stateDay){
   const ranges = state.data?.stateRanges || [];
