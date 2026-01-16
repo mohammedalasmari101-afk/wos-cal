@@ -73,6 +73,10 @@ body{
   border-color: rgba(0,255,190,.35);
   background: linear-gradient(90deg, rgba(0,255,190,.18), rgba(0,183,255,.14));
 }
+.pill.danger{
+  border-color: rgba(255,90,90,.25);
+  background: rgba(255,90,90,.08);
+}
 
 .layout{
   display:grid;
@@ -130,6 +134,8 @@ body{
 }
 .mini-label{font-size:11px; color:var(--muted)}
 .mini-value{font-weight:800; margin-top:2px}
+
+.side-actions{margin-top:14px}
 
 .content{display:flex; flex-direction:column; gap:18px}
 
@@ -233,7 +239,7 @@ input:focus, select:focus{border-color: rgba(0,255,190,.28)}
 }
 
 .cell{
-  min-height: 96px;
+  min-height: 110px;
   border-radius: 16px;
   border:1px solid var(--stroke);
   background: rgba(0,0,0,.14);
@@ -280,6 +286,28 @@ input:focus, select:focus{border-color: rgba(0,255,190,.28)}
   font-weight:850;
 }
 .detailItem .meta{color:var(--muted); font-size:12px; margin-top:6px; line-height:1.35}
+.detailItem .actions{
+  display:flex;
+  gap:10px;
+  margin-top:10px;
+  flex-wrap:wrap;
+  align-items:center;
+}
+.smallBtn{
+  padding:8px 10px;
+  border-radius: 12px;
+  border:1px solid var(--stroke);
+  background: rgba(255,255,255,.03);
+  color:var(--text);
+  cursor:pointer;
+  font-weight:800;
+}
+.smallBtn.primary{
+  border-color: rgba(0,255,190,.35);
+  background: rgba(0,255,190,.10);
+}
+.statusOk{color: rgba(0,255,190,.85); font-weight:800}
+.statusBad{color: rgba(255,140,140,.95); font-weight:800}
 
 @media (max-width: 980px){
   .layout{grid-template-columns: 1fr}

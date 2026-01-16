@@ -28,7 +28,6 @@
       ],
       "source": "screenshot"
     },
-
     {
       "id": "custom_pet_chest_9_99",
       "name": "Custom Pet Chest — Brilliant Custom Chest",
@@ -54,7 +53,6 @@
       ],
       "source": "screenshot"
     },
-
     {
       "id": "custom_pet_chest_19_99",
       "name": "Custom Pet Chest — Dazzling Custom Chest",
@@ -80,7 +78,6 @@
       ],
       "source": "screenshot"
     },
-
     {
       "id": "custom_pet_chest_49_99",
       "name": "Custom Pet Chest — Exquisite Custom Chest",
@@ -106,7 +103,6 @@
       ],
       "source": "screenshot"
     },
-
     {
       "id": "custom_pet_chest_99_99",
       "name": "Custom Pet Chest — Majestic Custom Chest",
@@ -143,7 +139,7 @@
       "rules": [
         {
           "id": "custom_pet_chest_weekly",
-          "title": "Custom Pet Chest (Weekly)",
+          "title": "Custom Pet Chest (Mon → next Mon)",
           "category": "Pets",
           "startDay": 1,
           "endDay": 9999,

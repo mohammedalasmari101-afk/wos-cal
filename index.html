@@ -36,8 +36,8 @@
         <div class="hero">
           <h1>Spend<br/>smarter.<br/>Stop<br/>missing<br/>packs.</h1>
           <p>
-            State-relative calendar (Day X). Track pack windows by rotation and event.
-            Built for serious spenders.
+            Monthly calendar (real dates). Packs scheduled by weekly/monthly/event rules.
+            Reset and State Day use 00:00 UTC.
           </p>
         </div>
 
@@ -47,13 +47,17 @@
             <div class="mini-value">Calendar</div>
           </div>
           <div class="mini">
-            <div class="mini-label">State Day</div>
+            <div class="mini-label">State Day (UTC)</div>
             <div class="mini-value" id="stateDayBadge">—</div>
           </div>
           <div class="mini">
             <div class="mini-label">Range</div>
             <div class="mini-value" id="rangeBadge">Default</div>
           </div>
+        </div>
+
+        <div class="side-actions">
+          <button class="pill danger" id="clearPurchasesBtn">Clear Purchases</button>
         </div>
       </div>
     </aside>
@@ -62,18 +66,18 @@
       <div class="panel">
         <div class="panel-head">
           <div>
-            <div class="kicker">STATE-RELATIVE CALENDAR</div>
+            <div class="kicker">MONTHLY CALENDAR (REAL DATES)</div>
             <div class="title">Pack Windows</div>
           </div>
 
           <div class="controls">
             <div class="control">
-              <label>State start date</label>
+              <label>State start date (UTC day 1)</label>
               <input type="date" id="stateStart" />
             </div>
 
             <div class="control">
-              <label>Or set “today is day”</label>
+              <label>Or set “today is state day” (UTC)</label>
               <input type="number" id="todayIsDay" min="1" placeholder="e.g. 45" />
             </div>
 
