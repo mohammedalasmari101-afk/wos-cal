@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MOHMD — Pack Admin</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .admin-wrap{max-width:1320px;margin:0 auto;padding:22px}
+    .admin-grid{display:grid;grid-template-columns: 420px 1fr;gap:18px}
+    .admin-note{color:rgba(215,230,255,.7);font-size:13px;line-height:1.5}
+    .admin-form{display:flex;flex-direction:column;gap:10px}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+    textarea{min-height:110px;resize:vertical}
+    .table{width:100%;border-collapse:collapse}
+    .table th,.table td{border-bottom:1px solid rgba(255,255,255,.08);padding:10px;text-align:left;font-size:13px}
+    .table th{color:rgba(215,230,255,.8);font-weight:900;letter-spacing:.08em;text-transform:uppercase;font-size:11px}
+    .tag{display:inline-block;padding:4px 8px;border-radius:999px;border:1px solid rgba(0,255,190,.18);background:rgba(0,255,190,.08);font-size:11px}
+    .warn{border-color:rgba(255,170,0,.25)!important;background:rgba(255,170,0,.06)!important}
+    .ok{color:rgba(0,255,190,.9);font-weight:900}
+    .bad{color:rgba(255,140,140,.95);font-weight:900}
+    @media (max-width: 980px){.admin-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="bg"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo-dot"></div>
+      <div class="brand-text">
+        <div class="brand-name">MOHMD</div>
+        <div class="brand-sub">Pack Admin — Official Editors</div>
+      </div>
+    </div>
+
+    <div class="top-actions">
+      <a class="pill" href="index.html">← Back to Calendar</a>
+      <button class="pill" id="loadBtn" type="button">Reload Data</button>
+      <button class="pill danger" id="clearOverrideBtn" type="button">Clear Admin Override</button>
+    </div>
+  </header>
+
+  <div class="admin-wrap">
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="kicker">ADMIN</div>
+          <div class="title">Add / Edit Packs</div>
+        </div>
+      </div>
+
+      <div class="panel-body admin-grid">
+        <!-- Left: Form -->
+        <div class="detailItem warn">
+          <div class="h">
+            <div>New Pack</div>
+            <div class="tag">writes to local override</div>
+          </div>
+          <div class="meta admin-note" style="margin-top:8px;white-space:pre-wrap">
+This page cannot edit GitHub files directly.
+It saves changes as an ADMIN OVERRIDE in your browser (localStorage),
+so the main calendar uses it immediately on this device.
+
+To publish globally: download JSON and commit it to /data/packs.json in GitHub.
+          </div>
+
+          <div class="admin-form" style="margin-top:12px">
+            <div class="row">
+              <div>
+                <label class="kicker" style="display:block;margin-bottom:6px">Pack ID (unique)</label>
+                <input id="p_id" placeholder="e.g. custom_pet_chest_4_99" />
+              </div>
+              <div>
+                <label class="kicker" style="display:block;margin-bottom:6px">Name</label>
+                <input id="p_name" placeholder="Exact in-game name" />
+              </div>
+            </div>
+
+            <div>
+              <label class="kicker" style="display:block;margin-bottom:6px">Description</label>
+              <input id="p_desc" placeholder="Short description" />
+            </div>
+
+            <div class="row3">
+              <div>
+                <label class="kicker" style="display:block;margin-bottom:6px">Price (USD)</label>
+                <input id="p_price" type="number" step="0.01" placeholder="4.99" />
+              </div>
+              <div>
+                <label class="kicker" style="display:block;margin-bottom:6px">Buy limit</label>
+                <input id="p_limit" type="number" min="1" placeholder="1" />
+              </div>
+              <div>
+                <label class="kicker" style="display:block;margin-bottom:6px">Reset</label>
+                <select id="p_reset">
+                  <option value="daily">daily</option>
+                  <option value="weekly" selected>weekly</option>
+                  <option value="monthly">monthly</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label class="kicker" style="display:block;margin-bottom:6px">Gives (JSON array)</label>
+              <textarea id="p_gives" spellcheck="false">[
+  { "item": "Custom Chest Key", "qty": 1 }
+]</textarea>
+              <div class="meta admin-note">Format: <span class="tag">[{ "item": "Name", "qty": 1 }]</span></div>
+            </div>
+
+            <div>
+              <label class="kicker" style="display:block;margin-bottom:6px">Choose Pool (optional)</label>
+              <textarea id="p_choose" spellcheck="false" placeholder='{
+  "count": 3,
+  "pool": [{ "item":"Pet Food","qty":5000 }]
+}'></textarea>
+              <div class="meta admin-note">Leave empty if not a choose pack.</div>
+            </div>
+
+            <button class="pill primary" id="addPackBtn" type="button">Add / Update Pack</button>
+          </div>
+        </div>
+
+        <!-- Right: Rules + Export -->
+        <div class="detailItem">
+          <div class="h">
+            <div>Schedule Rule (Window)</div>
+            <div class="tag">adds pack to calendar</div>
+          </div>
+
+          <div class="admin-form" style="margin-top:12px">
+            <div class="row">
+              <div>
+                <label class="kicker" style="display:block;margin-bottom:6px">Rule ID</label>
+                <input id="r_id" placeholder="e.g. custom_pet_chest_weekly" />
+              </div>
+              <div>
+                <label class="kicker" style="display:block;margin-bottom:6px">Category</label>
+                <input id="r_cat" placeholder="Pets" />
+              </div>
+            </div>
+
+            <div class="row">
+              <div>
+                <label class="kicker" style="display:block;margin-bottom:6px">Title</label>
+                <input id="r_title" placeholder="Custom Pet Chest (Mon → next Mon)" />
+              </div>
+              <div>
+                <label class="kicker" style="display:block;margin-bottom:6px">Repeat weekday (weekly)</label>
+                <select id="r_weekday">
+                  <option>Mon</option><option>Tue</option><option>Wed</option><option>Thu</option>
+                  <option>Fri</option><option>Sat</option><option>Sun</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="row3">
+              <div>
+                <label class="kicker" style="display:block;margin-bottom:6px">Start state day</label>
+                <input id="r_start" type="number" min="1" value="1" />
+              </div>
+              <div>
+                <label class="kicker" style="display:block;margin-bottom:6px">End state day</label>
+                <input id="r_end" type="number" min="1" value="9999" />
+              </div>
+              <div>
+                <label class="kicker" style="display:block;margin-bottom:6px">Pack IDs (comma)</label>
+                <input id="r_packs" placeholder="custom_pet_chest_4_99, custom_pet_chest_9_99" />
+              </div>
+            </div>
+
+            <button class="pill primary" id="addRuleBtn" type="button">Add / Update Rule</button>
+          </div>
+
+          <div style="margin-top:16px;border-top:1px solid rgba(255,255,255,.08);padding-top:14px">
+            <div class="h">
+              <div>Publish</div>
+              <div class="tag">export JSON</div>
+            </div>
+
+            <div class="meta admin-note" style="margin-top:8px">
+              Download the updated dataset and commit it to GitHub as <b>data/packs.json</b>.
+            </div>
+
+            <div class="actions" style="margin-top:12px">
+              <button class="smallBtn primary" id="downloadBtn" type="button">Download packs.json</button>
+              <button class="smallBtn" id="copyBtn" type="button">Copy JSON to Clipboard</button>
+            </div>
+
+            <div class="meta" id="status" style="margin-top:10px"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-body" style="padding-top:0">
+        <div class="kicker">CURRENT DATA</div>
+        <div class="meta admin-note" id="counts">—</div>
+
+        <div style="margin-top:10px;overflow:auto">
+          <table class="table" id="packsTable">
+            <thead>
+              <tr>
+                <th>Pack ID</th>
+                <th>Name</th>
+                <th>Reset</th>
+                <th>Limit</th>
+                <th>Price</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div style="margin-top:16px;overflow:auto">
+          <table class="table" id="rulesTable">
+            <thead>
+              <tr>
+                <th>Rule ID</th>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Repeat</th>
+                <th>Packs</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>

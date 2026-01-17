@@ -96,7 +96,7 @@ async function loadDataSafe(){
     json.packDefs = Array.isArray(json.packDefs) ? json.packDefs : [];
     json.stateRanges = Array.isArray(json.stateRanges) ? json.stateRanges : [];
 
-    state.data = json;
+    state.data = applyDatasetOverride(json);
   }catch(err){
     state.loadError = String(err?.message || err);
     // keep empty dataset so UI still renders
@@ -229,6 +229,41 @@ function makeCell(dateLocal, rules, todayUtcMidnight, focusMonth){
   });
 
   return cell;
+}
+function applyDatasetOverride(base){
+  const KEY = "wos_pack_dataset_override_v1";
+  try{
+    const raw = localStorage.getItem(KEY);
+    if(!raw) return base;
+    const ov = JSON.parse(raw);
+
+    // Normalize
+    base.packDefs = Array.isArray(base.packDefs) ? base.packDefs : [];
+    base.stateRanges = Array.isArray(base.stateRanges) ? base.stateRanges : [];
+    if(base.stateRanges.length === 0) base.stateRanges.push({ id:"default", label:"Default", minStateDay:1, maxStateDay:9999, rules:[] });
+    base.stateRanges[0].rules = Array.isArray(base.stateRanges[0].rules) ? base.stateRanges[0].rules : [];
+
+    ov.packDefs = Array.isArray(ov.packDefs) ? ov.packDefs : [];
+    ov.stateRanges = Array.isArray(ov.stateRanges) ? ov.stateRanges : [];
+    if(ov.stateRanges.length === 0) ov.stateRanges.push({ rules:[] });
+    ov.stateRanges[0].rules = Array.isArray(ov.stateRanges[0].rules) ? ov.stateRanges[0].rules : [];
+
+    const out = structuredClone(base);
+
+    // Merge packs by id
+    const pmap = new Map(out.packDefs.map(p => [p.id, p]));
+    for(const p of ov.packDefs) pmap.set(p.id, p);
+    out.packDefs = [...pmap.values()];
+
+    // Merge rules by id (default range)
+    const rmap = new Map(out.stateRanges[0].rules.map(r => [r.id, r]));
+    for(const r of ov.stateRanges[0].rules) rmap.set(r.id, r);
+    out.stateRanges[0].rules = [...rmap.values()];
+
+    return out;
+  }catch{
+    return base;
+  }
 }
 
 function ruleHasAnyAvailablePack(rule, dayUtcMid){
